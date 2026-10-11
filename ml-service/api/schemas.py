@@ -136,7 +136,8 @@ class StructuredDrug(BaseModel):
     frequency: Optional[str] = None
     duration: Optional[str] = None
     quantity: Optional[str] = None
-    confidence: Optional[str] = None      # 🆕 HIGH/MEDIUM/LOWreasoning: Optional[str] = None       # 🆕 why Gemini identified it
+    confidence: Optional[str] = None      # HIGH/MEDIUM/LOW
+    reasoning: Optional[str] = None       # why Gemini identified it
 
 
 class PatientInfo(BaseModel):

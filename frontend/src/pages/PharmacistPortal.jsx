@@ -31,7 +31,7 @@ const PharmacistPortal = () => {
           `/api/prescription/flagged?status=${filter}`,
         );
         setPrescriptions(res.data || []);
-      } catch (err) {
+      } catch {
         setPrescriptions([]);
       } finally {
         setLoading(false);

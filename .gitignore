@@ -146,6 +146,7 @@ vite.config.ts.timestamp-*
 __pycache__/
 *.py[cod]
 venv/
+**/.venv/
 *.egg-info/
 .Python
 ml-service/venv/
@@ -157,6 +158,34 @@ node_modules/
 
 # Build
 frontend/dist/
+backend/dist/
+dist/
+build/
+
+# Local runtime and generated files
+*.log
+*.tmp
+*.bak
+coverage/
+.pytest_cache/
+.mypy_cache/
+
+# Generated model outputs and training data
+**/saved_model/
+ml-service/data/patients.json
+ml-service/data/prescriptions.json
+ml-service/data/augmented_prescriptions.json
+ml-service/data/*_train.csv
+ml-service/data/*_val.csv
+ml-service/data/*_test.csv
+ml-service/data/*_training_data.csv
+ml-service/data/*_eval_results.json
+ml-service/data/dataset_stats.json
+ml-service/data/validation_report.txt
+ml-service/data/ner_*.jsonl
+ml-service/data/*_label_encoder.joblib
+ml-service/data/*_feature_columns.json
+ml-service/data/*.joblib
 
 # ML model weights and checkpoints (too large for GitHub)
 ml-service/ner/saved_model/

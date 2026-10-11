@@ -13,7 +13,7 @@ export const useAudit = (limit = 50) => {
       const res = await auditApi.getAll(limit);
       setLogs(res.data.logs || []);
       setCount(res.data.count || 0);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load audit logs");
     } finally {
       setLoading(false);

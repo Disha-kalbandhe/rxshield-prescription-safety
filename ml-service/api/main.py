@@ -66,9 +66,9 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     """Initialize API on startup."""
-    print("🚀 RxShield ML API starting...")
-    print("📦 Models will load lazily on first request")
-    print("✅ API ready at http://localhost:8000")
+    print("RxShield ML API starting...")
+    print("Models will load lazily on first request")
+    print("API ready at http://localhost:8000")
 
 
 # ============================================================================

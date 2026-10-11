@@ -13,7 +13,6 @@ import {
   X,
   Save,
 } from "lucide-react";
-import toast from "react-hot-toast";
 
 const PatientProfile = () => {
   const {

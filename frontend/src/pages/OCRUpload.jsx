@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Upload,
@@ -19,7 +18,6 @@ import {
 } from "lucide-react";
 import { ocrApi, patientApi } from "../utils/api";
 import RiskReport from "../components/ui/RiskReport";
-import { useTheme } from "../context/ThemeContext";
 import Layout from "../components/Layout";
 
 const LANGUAGES = [
@@ -28,6 +26,51 @@ const LANGUAGES = [
   { value: "marathi", label: "🇮🇳 Marathi (मराठी)", flag: "🇮🇳" },
   { value: "hindi+marathi", label: "🇮🇳 Hindi + Marathi", flag: "🇮🇳" },
 ];
+
+const StepProgress = ({ step }) => {
+  const steps = [
+    { key: "extracting", label: "Extracting Text", icon: FileImage },
+    { key: "analyzing", label: "Analyzing Drugs", icon: FlaskConical },
+    { key: "done", label: "Report Ready", icon: CheckCircle },
+  ];
+  const currentIdx = steps.findIndex((item) => item.key === step);
+
+  return (
+    <div className="flex items-center justify-center gap-2 my-6">
+      {steps.map((item, index) => {
+        const Icon = item.icon;
+        const isActive = item.key === step;
+        const isDone =
+          currentIdx > index || (step === "done" && item.key === "done");
+        return (
+          <div key={item.key} className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                isDone
+                  ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                  : isActive
+                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse"
+                    : "bg-gray-800/50 text-gray-500 border border-gray-700/30"
+              }`}
+            >
+              {isActive && !isDone ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : isDone ? (
+                <CheckCircle size={14} />
+              ) : (
+                <Icon size={14} />
+              )}
+              {item.label}
+            </div>
+            {index < steps.length - 1 && (
+              <ChevronRight size={16} className="text-gray-600" />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const OCRUpload = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -40,8 +83,6 @@ const OCRUpload = () => {
   const [patientId, setPatientId] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
-  const { isDark } = useTheme();
-  const navigate = useNavigate();
 
   // Handle file selection
   const handleFile = useCallback((file) => {
@@ -165,53 +206,6 @@ const OCRUpload = () => {
     setPatientId("");
   };
 
-  // Step Progress Component
-  const StepProgress = () => {
-    const steps = [
-      { key: "extracting", label: "Extracting Text", icon: FileImage },
-      { key: "analyzing", label: "Analyzing Drugs", icon: FlaskConical },
-      { key: "done", label: "Report Ready", icon: CheckCircle },
-    ];
-    const currentIdx = steps.findIndex((s) => s.key === step);
-
-    return (
-      <div className="flex items-center justify-center gap-2 my-6">
-        {steps.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = s.key === step;
-          const isDone = currentIdx > i || (step === "done" && s.key === "done");
-          return (
-            <div key={s.key} className="flex items-center gap-2">
-              <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-full 
-                             text-sm font-medium transition-all duration-300 
-                ${
-                  isDone
-                    ? "bg-green-500/20 text-green-400 border border-green-500/40"
-                    : isActive
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse"
-                      : "bg-gray-800/50 text-gray-500 border border-gray-700/30"
-                }`}
-              >
-                {isActive && !isDone ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : isDone ? (
-                  <CheckCircle size={14} />
-                ) : (
-                  <Icon size={14} />
-                )}
-                {s.label}
-              </div>
-              {i < steps.length - 1 && (
-                <ChevronRight size={16} className="text-gray-600" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -229,7 +223,9 @@ const OCRUpload = () => {
         </div>
 
         {/* STEP PROGRESS (show when processing) */}
-        {["extracting", "analyzing", "done"].includes(step) && <StepProgress />}
+        {["extracting", "analyzing", "done"].includes(step) && (
+          <StepProgress step={step} />
+        )}
 
         {/* TWO COLUMN LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

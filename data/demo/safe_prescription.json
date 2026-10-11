@@ -1,0 +1,8 @@
+{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "patient_age": 45,
+  "allergies": [],
+  "medications": [
+    {"drug": "metformin", "dose": "500 mg", "frequency": "twice daily", "duration": "30 days"}
+  ]
+}

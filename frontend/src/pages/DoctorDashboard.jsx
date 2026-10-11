@@ -16,7 +16,7 @@ import {
 import toast from "react-hot-toast";
 
 const DoctorDashboard = () => {
-  const { loading, result, error, analyzePrescription, reset } =
+  const { loading, result, analyzePrescription, reset } =
     usePrescription();
   const { currentUser } = useAuth();
 
@@ -32,19 +32,15 @@ const DoctorDashboard = () => {
     comorbidities: "",
   });
   const [demoPatients, setDemoPatients] = useState([]);
-  const [loadingDemo, setLoadingDemo] = useState(false);
 
   // Fetch demo patients on mount
   useEffect(() => {
     const fetchDemo = async () => {
-      setLoadingDemo(true);
       try {
         const res = await nodeApi.get("/api/patients/demo");
         setDemoPatients(res.data || []);
       } catch {
         // silently fail - demo patients optional
-      } finally {
-        setLoadingDemo(false);
       }
     };
     fetchDemo();

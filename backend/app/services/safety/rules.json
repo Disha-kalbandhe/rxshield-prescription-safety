@@ -1,0 +1,45 @@
+{
+  "metadata": "Prototype knowledge base; not a complete clinical database.",
+  "interactions": [
+    {
+      "rule_id": "DDI_001",
+      "drugs": ["warfarin", "aspirin"],
+      "type": "DDI_ERROR",
+      "severity": "HIGH",
+      "description": "Configured prototype interaction between warfarin and aspirin.",
+      "evidence": "Synthetic rule for demonstration only."
+    }
+  ],
+  "allergies": [
+    {
+      "rule_id": "ALLERGY_001",
+      "allergen": "penicillin",
+      "drugs": ["amoxicillin", "amoxicillin/clavulanate"],
+      "type": "ALLERGY_ERROR",
+      "severity": "HIGH",
+      "description": "The configured allergy matches a medication family in the prototype rules.",
+      "evidence": "Synthetic prototype allergy rule."
+    }
+  ],
+  "dosages": [
+    {
+      "rule_id": "DOSAGE_001",
+      "drug": "metformin",
+      "max_mg": 2000,
+      "type": "DOSAGE_ERROR",
+      "severity": "MEDIUM",
+      "description": "Configured prototype maximum for metformin is exceeded.",
+      "evidence": "Synthetic dosage boundary for demonstration only."
+    }
+  ],
+  "lasa": [
+    {
+      "rule_id": "LASA_001",
+      "drugs": ["hydroxyzine", "hydralazine"],
+      "type": "LASA_ERROR",
+      "severity": "MEDIUM",
+      "description": "The medication resembles another configured name and should be reviewed.",
+      "evidence": "Synthetic look-alike/sound-alike demonstration rule."
+    }
+  ]
+}
