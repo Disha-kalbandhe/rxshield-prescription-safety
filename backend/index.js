@@ -21,28 +21,42 @@ const allowedOrigins = [
   "http://localhost:3000", // Alternative dev port
   "http://localhost:4173", // Vite preview
   process.env.FRONTEND_URL, // Vercel production URL
-  process.env.CLIENT_URL, // Fallback (legacy)
-].filter(Boolean); // Remove undefined values
+  process.env.CLIENT_URL,   // Fallback (legacy)
+].filter(Boolean);
+
+// Patterns for dynamic/preview deployments
+const allowedPatterns = [
+  /^https:\/\/[\w-]+\.vercel\.app$/,   // any *.vercel.app (includes preview URLs)
+  /^https:\/\/[\w-]+\.onrender\.com$/, // service-to-service on Render
+  /^http:\/\/localhost:\d+$/,           // any localhost port (dev)
+];
+
+console.log("✅ CORS allowed origins:", allowedOrigins);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, Postman, curl)
+      // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
       if (!origin) return callback(null, true);
 
-      // Check if origin is in allowed list
+      // Check exact static list
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // In development, allow any localhost origin as fallback
-      if (
-        process.env.NODE_ENV !== "production" &&
-        origin.match(/^http:\/\/localhost:\d+$/)
-      ) {
+      // Check pattern list (Vercel previews, Render internal, localhost)
+      if (allowedPatterns.some((pattern) => pattern.test(origin))) {
+        // Restrict localhost patterns to non-production only
+        if (
+          /^http:\/\/localhost/.test(origin) &&
+          process.env.NODE_ENV === "production"
+        ) {
+          return callback(new Error(`CORS: Origin ${origin} not allowed in production`));
+        }
         return callback(null, true);
       }
 
+      console.warn(`CORS blocked origin: ${origin}`);
       callback(new Error(`CORS: Origin ${origin} not allowed`));
     },
     credentials: true,
