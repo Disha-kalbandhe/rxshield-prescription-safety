@@ -21,5 +21,6 @@ torch==2.3.1
 transformers==4.41.2
 
 # External services / helpers
-google-generativeai==0.7.0
+# Pin to 0.7.x – the code uses genai.types.GenerationConfig which is stable in this range
+google-generativeai>=0.7.0,<0.9.0
 jellyfish==1.1.0

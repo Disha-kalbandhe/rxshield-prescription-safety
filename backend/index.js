@@ -83,9 +83,30 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Health check for Railway (uses /api/health)
+// Health check for Render (uses /api/health)
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "RxShield Backend" });
+});
+
+// ML service status — probes ML service so frontend can show a warning
+app.get("/api/ml-status", async (_req, res) => {
+  const axios = require("axios");
+  const mlUrl = process.env.ML_API_URL;
+  if (!mlUrl) {
+    return res.json({ status: "unconfigured", message: "ML_API_URL not set" });
+  }
+  try {
+    const response = await axios.get(`${mlUrl}/health`, { timeout: 8000 });
+    return res.json({ status: "ok", mlService: response.data });
+  } catch (err) {
+    if (err.code === "ECONNREFUSED" || err.code === "ECONNRESET") {
+      return res.json({ status: "offline", message: "ML service is sleeping (Render free tier). First request will wake it up in ~60s." });
+    }
+    if (err.code === "ECONNABORTED") {
+      return res.json({ status: "starting", message: "ML service is starting up. Please wait ~60 seconds." });
+    }
+    return res.json({ status: "error", message: err.message });
+  }
 });
 
 // ── 404 handler ───────────────────────────────────────────────────────────────

@@ -66,12 +66,14 @@ router.post(
         patientInfo: ocrData.patientInfo || null,
       });
     } catch (err) {
-      console.error("OCR route error:", err.message);
+      console.error("OCR extract error:", err.message);
 
-      if (err.code === "ECONNREFUSED") {
-          return res.status(503).json({
-            error: "ML API is not running. Start ml-service/api/main.py first.",
-        });
+      if (err.code === "ECONNREFUSED" || err.code === "ECONNRESET") {
+        return res.status(503).json({ error: "ML service is offline. Please retry in 30-60 seconds.", code: "ML_OFFLINE" });
+      }
+
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        return res.status(504).json({ error: "ML service timed out. Please retry.", code: "ML_TIMEOUT" });
       }
 
       return res.status(500).json({
@@ -174,16 +176,51 @@ router.post(
       });
     } catch (err) {
       console.error("❌ OCR analyze error:", err.message);
-      if (err.response) {
-        // Log the full error response from the ML service
-        console.error("ML API Error Status:", err.response.status);
-        console.error("ML API Error Data:", JSON.stringify(err.response.data, null, 2));
-      } else {
-        console.error("Error has no response object:", err);
+
+      // ── ML service is down / sleeping (Render free tier cold start) ────────
+      if (err.code === "ECONNREFUSED" || err.code === "ECONNRESET") {
+        return res.status(503).json({
+          error:
+            "ML service is currently offline. Please wait 30–60 seconds and try again (Render free tier may be waking up).",
+          code: "ML_OFFLINE",
+        });
       }
+
+      // ── Timeout (ML service too slow — model loading on cold start) ────────
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        return res.status(504).json({
+          error:
+            "ML service took too long to respond. This can happen on first request after inactivity. Please retry in 30 seconds.",
+          code: "ML_TIMEOUT",
+        });
+      }
+
+      // ── ML service returned an error response ──────────────────────────────
+      if (err.response) {
+        const status = err.response.status;
+        const detail =
+          err.response.data?.detail ||
+          err.response.data?.error ||
+          err.message;
+        console.error("ML API Error Status:", status);
+        console.error("ML API Error Data:", JSON.stringify(err.response.data, null, 2));
+
+        // 422 = Validation error (bad input)
+        if (status === 422) {
+          return res.status(422).json({ error: `ML API validation error: ${detail}` });
+        }
+
+        return res.status(500).json({
+          error: `ML service error (${status}): ${detail}`,
+          code: "ML_ERROR",
+        });
+      }
+
+      // ── Unknown error ──────────────────────────────────────────────────────
+      console.error("Unhandled OCR error:", err);
       return res.status(500).json({
-        error:
-          err.response?.data?.detail || err.message || "OCR analysis failed",
+        error: err.message || "OCR analysis failed",
+        code: "UNKNOWN",
       });
     }
   },

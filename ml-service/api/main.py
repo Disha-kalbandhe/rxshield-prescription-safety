@@ -66,9 +66,20 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     """Initialize API on startup."""
+    print("=" * 60)
     print("RxShield ML API starting...")
+
+    # Validate required env vars
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        print("⚠️  WARNING: GEMINI_API_KEY is not set!")
+        print("   OCR will fall back to Tesseract only.")
+    else:
+        print(f"✅ GEMINI_API_KEY found ({gemini_key[:8]}...)")
+
+    print(f"✅ PORT: {os.getenv('PORT', '10000')}")
     print("Models will load lazily on first request")
-    print("API ready at http://localhost:8000")
+    print("=" * 60)
 
 
 # ============================================================================
