@@ -85,14 +85,14 @@ export const ocrApi = {
   extract: (formData) =>
     nodeApi.post("/api/ocr/extract", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-      timeout: 30000,
+      timeout: 120000,
     }),
 
   // NEW: Extract + Analyze in one call — use this in OCRUpload.jsx
   analyzeImage: (formData) =>
     nodeApi.post("/api/ocr/analyze", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-      timeout: 45000, // 45s: OCR (3s) + Analyze (2s) + buffer
+      timeout: 120000,
     }),
 };
 

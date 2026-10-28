@@ -101,7 +101,7 @@ router.post(
       const ocrResponse = await mlAxios.post("/ocr", {
         image_b64: base64Image,
         language: language,
-      });
+      }, { timeout: 120000 });
       const ocrData = ocrResponse.data;
 
       // Log the raw OCR data received from the ML service
@@ -152,7 +152,7 @@ router.post(
         structuredDrugs: ocrData.structuredDrugs,
         rawText: ocrData.cleanedText || ocrData.extractedText || "",
         patientData: patientData,
-      });
+      }, { timeout: 120000 });
 
       // Log the raw analysis data received from the ML service
       console.log("📈 Raw Analysis Data from ML service:", JSON.stringify(analyzeResponse.data, null, 2));

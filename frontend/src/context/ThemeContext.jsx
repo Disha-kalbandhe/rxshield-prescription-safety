@@ -33,4 +33,6 @@ export function ThemeProvider({ children }) {
   );
 }
 
+// The hook is colocated with its context to keep the public theme API together.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => useContext(ThemeContext);

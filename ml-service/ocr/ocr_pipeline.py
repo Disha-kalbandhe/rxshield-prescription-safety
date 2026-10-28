@@ -18,6 +18,7 @@ import io
 import platform
 import json
 import shutil
+import sys
 from typing import Optional
 import numpy as np
 from difflib import get_close_matches, SequenceMatcher
@@ -27,6 +28,9 @@ import pytesseract
 from dotenv import load_dotenv
 
 load_dotenv()
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 def _configure_tesseract_cmd() -> Optional[str]:
     """
@@ -78,12 +82,12 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash").strip()
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_FALLBACK_MODELS = [
     model_name.strip()
     for model_name in os.getenv(
         "GEMINI_FALLBACK_MODELS",
-        "gemini-1.5-flash-latest,gemini-2.0-flash,gemini-2.0-flash-lite",
+        "gemini-2.5-flash-lite,gemini-2.5-pro",
     ).split(",")
     if model_name.strip()
 ]

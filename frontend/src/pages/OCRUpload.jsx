@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Upload,
@@ -19,7 +18,6 @@ import {
 } from "lucide-react";
 import { ocrApi, patientApi } from "../utils/api";
 import RiskReport from "../components/ui/RiskReport";
-import { useTheme } from "../context/ThemeContext";
 import Layout from "../components/Layout";
 
 const LANGUAGES = [
@@ -40,8 +38,6 @@ const OCRUpload = () => {
   const [patientId, setPatientId] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
-  const { isDark } = useTheme();
-  const navigate = useNavigate();
 
   // Handle file selection
   const handleFile = useCallback((file) => {
@@ -166,20 +162,22 @@ const OCRUpload = () => {
   };
 
   // Step Progress Component
-  const StepProgress = () => {
+  const renderStepProgress = () => {
+    const currentStep = step;
     const steps = [
       { key: "extracting", label: "Extracting Text", icon: FileImage },
       { key: "analyzing", label: "Analyzing Drugs", icon: FlaskConical },
       { key: "done", label: "Report Ready", icon: CheckCircle },
     ];
-    const currentIdx = steps.findIndex((s) => s.key === step);
+    const currentIdx = steps.findIndex((s) => s.key === currentStep);
 
     return (
       <div className="flex items-center justify-center gap-2 my-6">
         {steps.map((s, i) => {
           const Icon = s.icon;
-          const isActive = s.key === step;
-          const isDone = currentIdx > i || (step === "done" && s.key === "done");
+          const isActive = s.key === currentStep;
+          const isDone =
+            currentIdx > i || (currentStep === "done" && s.key === "done");
           return (
             <div key={s.key} className="flex items-center gap-2">
               <div
@@ -229,7 +227,9 @@ const OCRUpload = () => {
         </div>
 
         {/* STEP PROGRESS (show when processing) */}
-        {["extracting", "analyzing", "done"].includes(step) && <StepProgress />}
+        {["extracting", "analyzing", "done"].includes(step) && (
+          renderStepProgress()
+        )}
 
         {/* TWO COLUMN LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

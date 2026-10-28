@@ -27,6 +27,8 @@ export function AuthProvider({ children }) {
   );
 }
 
+// The hook is colocated with its context to keep the public auth API together.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }
