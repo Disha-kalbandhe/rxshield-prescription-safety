@@ -1,0 +1,8 @@
+{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "patient_age": 39,
+  "allergies": [],
+  "medications": [
+    {"drug": "hydroxyzine", "dose": "25 mg", "frequency": "once daily"}
+  ]
+}

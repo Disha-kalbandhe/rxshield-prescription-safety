@@ -1,0 +1,9 @@
+{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "patient_age": 67,
+  "allergies": [],
+  "medications": [
+    {"drug": "warfarin", "dose": "5 mg", "frequency": "once daily"},
+    {"drug": "aspirin", "dose": "81 mg", "frequency": "once daily"}
+  ]
+}

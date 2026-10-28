@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../firebase/config";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -27,8 +28,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// The hook is colocated with its context to keep the public auth API together.
-// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }

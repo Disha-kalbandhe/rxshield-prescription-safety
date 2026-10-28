@@ -1,0 +1,8 @@
+http://localhost:5173{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "patient_age": 51,
+  "allergies": [],
+  "medications": [
+    {"drug": "metformin", "dose": "2500 mg", "frequency": "once daily"}
+  ]
+}

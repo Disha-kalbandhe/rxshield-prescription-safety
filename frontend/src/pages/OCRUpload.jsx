@@ -27,6 +27,51 @@ const LANGUAGES = [
   { value: "hindi+marathi", label: "🇮🇳 Hindi + Marathi", flag: "🇮🇳" },
 ];
 
+const StepProgress = ({ step }) => {
+  const steps = [
+    { key: "extracting", label: "Extracting Text", icon: FileImage },
+    { key: "analyzing", label: "Analyzing Drugs", icon: FlaskConical },
+    { key: "done", label: "Report Ready", icon: CheckCircle },
+  ];
+  const currentIdx = steps.findIndex((item) => item.key === step);
+
+  return (
+    <div className="flex items-center justify-center gap-2 my-6">
+      {steps.map((item, index) => {
+        const Icon = item.icon;
+        const isActive = item.key === step;
+        const isDone =
+          currentIdx > index || (step === "done" && item.key === "done");
+        return (
+          <div key={item.key} className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                isDone
+                  ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                  : isActive
+                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse"
+                    : "bg-gray-800/50 text-gray-500 border border-gray-700/30"
+              }`}
+            >
+              {isActive && !isDone ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : isDone ? (
+                <CheckCircle size={14} />
+              ) : (
+                <Icon size={14} />
+              )}
+              {item.label}
+            </div>
+            {index < steps.length - 1 && (
+              <ChevronRight size={16} className="text-gray-600" />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const OCRUpload = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -161,55 +206,6 @@ const OCRUpload = () => {
     setPatientId("");
   };
 
-  // Step Progress Component
-  const renderStepProgress = () => {
-    const currentStep = step;
-    const steps = [
-      { key: "extracting", label: "Extracting Text", icon: FileImage },
-      { key: "analyzing", label: "Analyzing Drugs", icon: FlaskConical },
-      { key: "done", label: "Report Ready", icon: CheckCircle },
-    ];
-    const currentIdx = steps.findIndex((s) => s.key === currentStep);
-
-    return (
-      <div className="flex items-center justify-center gap-2 my-6">
-        {steps.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = s.key === currentStep;
-          const isDone =
-            currentIdx > i || (currentStep === "done" && s.key === "done");
-          return (
-            <div key={s.key} className="flex items-center gap-2">
-              <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-full 
-                             text-sm font-medium transition-all duration-300 
-                ${
-                  isDone
-                    ? "bg-green-500/20 text-green-400 border border-green-500/40"
-                    : isActive
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse"
-                      : "bg-gray-800/50 text-gray-500 border border-gray-700/30"
-                }`}
-              >
-                {isActive && !isDone ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : isDone ? (
-                  <CheckCircle size={14} />
-                ) : (
-                  <Icon size={14} />
-                )}
-                {s.label}
-              </div>
-              {i < steps.length - 1 && (
-                <ChevronRight size={16} className="text-gray-600" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -228,7 +224,7 @@ const OCRUpload = () => {
 
         {/* STEP PROGRESS (show when processing) */}
         {["extracting", "analyzing", "done"].includes(step) && (
-          renderStepProgress()
+          <StepProgress step={step} />
         )}
 
         {/* TWO COLUMN LAYOUT */}

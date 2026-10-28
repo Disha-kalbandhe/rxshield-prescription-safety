@@ -1,0 +1,1 @@
+"""Deterministic prototype safety rules."""
