@@ -1,4 +1,5 @@
-# Last updated: 2026-10-29
+# RxShield - Core Python Dependencies & ML Pipeline
+# Python environment: >=3.10
 accelerate==1.12.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3

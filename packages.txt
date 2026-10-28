@@ -1,3 +1,4 @@
+# System dependencies for OCR (Tesseract Engine and language packs)
 tesseract-ocr
 tesseract-ocr-eng
 tesseract-ocr-hin
