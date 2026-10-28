@@ -122,70 +122,94 @@ async def analyze_prescription(request: AnalyzeRequest):
     # ── STEP 1: NER ──────────────────────────────────────────────────────────
     drug_names = []
     extracted_drugs = []
-    try:
-        ner_result = extract_entities(text)
-        drug_names = ner_result.get("drugs", [])
-        dose_tokens = ner_result.get("doses", [])
-        freq_tokens = ner_result.get("frequencies", [])
-        dur_tokens  = ner_result.get("durations", [])
-        
-        extracted_drugs = [
-            ExtractedDrug(
-                drug_name=drug,
-                dose=dose_tokens[i] if i < len(dose_tokens) else None,
-                frequency=freq_tokens[i] if i < len(freq_tokens) else None,
-                duration=dur_tokens[i] if i < len(dur_tokens) else None
-            )
-            for i, drug in enumerate(drug_names)
-        ]
-    except Exception as e:
-        print(f"NER error: {e}")
-        # Fallback: extract drug names with regex from text
+
+    # Regex drug fallback — used when NER fails or finds nothing
+    def _regex_drug_fallback(text):
         drug_pattern = re.compile(
             r'\b(Metformin|Aspirin|Warfarin|Amoxicillin|Atorvastatin|'
             r'Amlodipine|Lisinopril|Metoprolol|Betaloc|Atenolol|Digoxin|'
             r'Furosemide|Tramadol|Codeine|Morphine|Ibuprofen|Diclofenac|'
-            r'Paracetamol|Omeprazole|Pantoprazole|Ciprofloxacin|'
+            r'Paracetamol|Acetaminophen|Omeprazole|Pantoprazole|Ciprofloxacin|'
             r'Azithromycin|Clarithromycin|Ceftriaxone|Cephalexin|'
             r'Simvastatin|Rosuvastatin|Carbamazepine|Spironolactone|'
             r'Verapamil|Diltiazem|Cimetidine|Ranitidine|Famotidine|'
             r'Dorzolamide|Oxprenolol|Oxprelol|Telmisartan|Losartan|'
             r'Glimepiride|Sitagliptin|Levothyroxine|Sertraline|Fluoxetine|'
             r'Prednisolone|Dexamethasone|Salbutamol|Theophylline|Ramipril|'
-            r'Cetirizine|Naproxen|Ketorolac)\b',
+            r'Cetirizine|Naproxen|Ketorolac|Insulin|Gabapentin|Pregabalin|'
+            r'Phenytoin|Valproate|Clonazepam|Alprazolam|Diazepam|'
+            r'Metronidazole|Clindamycin|Doxycycline|Levofloxacin|'
+            r'Hydrochlorothiazide|Enalapril|Bisoprolol|Propranolol|'
+            r'Esomeprazole|Tamsulosin|Montelukast|Loratadine|Fexofenadine|'
+            r'Amitriptyline|Duloxetine|Risperidone|Quetiapine|Ondansetron)\b',
             re.IGNORECASE
         )
-        drug_names = list(dict.fromkeys(
-            m.group(0) for m in drug_pattern.finditer(text)
+        names = list(dict.fromkeys(
+            m.group(0).capitalize() for m in drug_pattern.finditer(text)
         ))
-        extracted_drugs = [ExtractedDrug(drug_name=d) for d in drug_names]
+        return names, [ExtractedDrug(drug_name=d) for d in names]
 
-    # ── STEP 2: Extract doses from text for dosage checking ─────────────────
-    # Build extracted_drugs_raw for rules engine
-    extracted_drugs_raw = []
-    for ed in extracted_drugs:
-        extracted_drugs_raw.append({
-            "drug_name": ed.drug_name,
-            "dose": ed.dose
-        })
-    
-    # If doses missing from NER, try regex extraction
-    if drug_names and not any(e.dose for e in extracted_drugs):
-        # Pattern: "DrugName 500mg" or "DrugName 500 mg"
-        for i, drug in enumerate(drug_names):
-            pattern = re.compile(
-                re.escape(drug) + r'\s+(\d+\.?\d*)\s*(?:mg|mcg|ml|units?)',
-                re.IGNORECASE
-            )
-            m = pattern.search(text)
-            if m:
-                extracted_drugs[i] = ExtractedDrug(
-                    drug_name=extracted_drugs[i].drug_name,
-                    dose=m.group(0).split(drug, 1)[-1].strip(),
-                    frequency=extracted_drugs[i].frequency,
-                    duration=extracted_drugs[i].duration
+    try:
+        ner_result = extract_entities(text)
+        drug_names = ner_result.get("drugs", [])
+        dose_tokens = ner_result.get("doses", [])
+        freq_tokens = ner_result.get("frequencies", [])
+        dur_tokens  = ner_result.get("durations", [])
+
+        if drug_names:
+            extracted_drugs = [
+                ExtractedDrug(
+                    drug_name=drug,
+                    dose=dose_tokens[i] if i < len(dose_tokens) else None,
+                    frequency=freq_tokens[i] if i < len(freq_tokens) else None,
+                    duration=dur_tokens[i] if i < len(dur_tokens) else None
                 )
-                extracted_drugs_raw[i]["dose"] = m.group(0).split(drug, 1)[-1].strip()
+                for i, drug in enumerate(drug_names)
+            ]
+            print(f"✅ NER found {len(drug_names)} drugs: {drug_names}")
+        else:
+            # NER loaded but found no drugs — use regex
+            print("⚠️ NER returned no drugs, using regex fallback")
+            drug_names, extracted_drugs = _regex_drug_fallback(text)
+    except Exception as e:
+        print(f"NER error: {e} — using regex fallback")
+        drug_names, extracted_drugs = _regex_drug_fallback(text)
+
+    print(f"🔍 Drug names for analysis: {drug_names}")
+
+    # ── STEP 2: Regex dose extraction — always run, fills gaps from NER ────
+    # NER returns doses as flat list (not guaranteed 1:1 with drugs).
+    # Regex is the reliable source: "DrugName 500mg" or "DrugName 500 mg"
+    # Build extracted_drugs_raw fresh with regex-augmented doses.
+    extracted_drugs_raw = []
+    for i, drug in enumerate(drug_names):
+        # Try regex: match "DrugName 500mg" or "DrugName 500 mg"
+        dose_pattern = re.compile(
+            re.escape(drug) + r'\s+(\d+\.?\d*)\s*(mg|mcg|ml|g\b|units?)',
+            re.IGNORECASE
+        )
+        dose_match = dose_pattern.search(text)
+        
+        if dose_match:
+            # e.g. "5000mg" or "5000 mg"
+            dose_str = dose_match.group(1) + dose_match.group(2)
+            # Update ExtractedDrug object too
+            extracted_drugs[i] = ExtractedDrug(
+                drug_name=drug,
+                dose=dose_str,
+                frequency=extracted_drugs[i].frequency if i < len(extracted_drugs) else None,
+                duration=extracted_drugs[i].duration if i < len(extracted_drugs) else None
+            )
+        else:
+            # Keep NER dose if regex found nothing
+            dose_str = extracted_drugs[i].dose if i < len(extracted_drugs) else None
+
+        extracted_drugs_raw.append({
+            "drug_name": drug,
+            "dose": dose_str
+        })
+
+    print(f"📋 Drugs with doses: {[(d['drug_name'], d['dose']) for d in extracted_drugs_raw]}")
 
     # ── STEP 3: RUN RULES ENGINE (ALL 4 CHECKS) ─────────────────────────────
     if drug_names:
