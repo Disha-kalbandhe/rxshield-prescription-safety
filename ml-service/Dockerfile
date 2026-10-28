@@ -27,11 +27,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Railway injects PORT env var
-ENV PORT=8000
+# Render (and Railway) inject PORT env var at runtime
+ENV PORT=10000
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-EXPOSE 8000
+EXPOSE $PORT
 
 CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT}
